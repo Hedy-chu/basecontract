@@ -41,6 +41,7 @@ contract Bank {
 
     function withdraw() public {
         require(owner == msg.sender,"only owner can withdraw");
+        require(address(this).balance >0,"not sufficient funds");
         address payable sender = payable (msg.sender);
         sender.transfer(address(this).balance);
     }
