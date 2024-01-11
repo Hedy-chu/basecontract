@@ -5,6 +5,7 @@ contract Bank {
     mapping (address => uint) public depositeAccount;
     address[3] public topAccount;
     address public owner;
+    bool public rept = false;
 
     constructor() {
         owner = msg.sender;
@@ -21,20 +22,30 @@ contract Bank {
     function deposite () public payable {
         require(msg.value > 0,"The deposit should be greater than zero");
         depositeAccount[msg.sender] += msg.value;
+    
         for (uint i = 0; i < 3; i++) {
-            address account = topAccount[i];
-            uint amount = depositeAccount[account];
-            if(msg.value> amount){
-                topAccount[i] = msg.sender;
-                if (i == 2 ){
-                    break;
-                }else if(i == 0){
-                    topAccount[2] = topAccount[1];
-                    topAccount[1] = account;
-                }else {
-                    topAccount[2] = account;
-                }
+            if (topAccount[i] == msg.sender){
+                rept = true;
+                sort();
                 break;
+            }
+        }
+        if(rept == false){
+            topAccount[0] = msg.sender;
+            sort();
+        }
+    }
+
+    function sort() public {
+        uint256 n = topAccount.length;
+
+        for (uint256 i = 0; i < n - 1; i++) {
+            for (uint256 j = 0; j < n - i - 1; j++) {
+                uint amount = depositeAccount[topAccount[j]];
+                uint nextAmount = depositeAccount[topAccount[j+1]];
+                if (amount > nextAmount){
+                    (topAccount[j],topAccount[j+1]) = (topAccount[j+1],topAccount[j]);
+                }
             }
         }
     }
