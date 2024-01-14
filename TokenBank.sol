@@ -12,7 +12,7 @@ interface IMyToken {
 
 contract TokenBank {
     address public tokenAddr;
-    address public owner ;
+    address public owner;
     mapping (address => uint) public depositAmount;
     error withdrowError();
 
