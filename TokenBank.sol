@@ -1,23 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import"./MyToken.sol";
-
 interface IMyToken {
-    function approve(address to, uint amount) external returns (bool) ;
     function transferFrom(address from,address to,uint amount) external returns (bool);
     function transfer(address to, uint amount) external;
     function balanceOf(address addr) external view returns (uint);
 }
 
 contract TokenBank {
-    address public tokenAddr;
+    IMyToken public immutable token;
     address public owner;
     mapping (address => uint) public depositAmount;
     error withdrowError();
 
     constructor(address addr) {
-        tokenAddr = addr;
+        token = IMyToken(addr);
         owner = msg.sender;
     }
 
@@ -26,19 +23,21 @@ contract TokenBank {
         _;
     }
 
-    function deposit(uint amount) public {
-        uint senderBalance = IMyToken(tokenAddr).balanceOf((msg.sender));
+    function deposit(uint amount) public virtual {
+        uint senderBalance = token.balanceOf((msg.sender));
         require(senderBalance > amount,"deposit fail");
-        bool result = IMyToken(tokenAddr).transferFrom(msg.sender,address(this),amount);
+        bool result = token.transferFrom(msg.sender,address(this),amount);
         if (result){
             depositAmount[msg.sender] += amount;
         }
         
     }
 
-    function withdrow() public onlyOwner {
-        require(IMyToken(tokenAddr).balanceOf((address(this))) > 0,"no balance");
-        IMyToken(tokenAddr).transfer(msg.sender,IMyToken(tokenAddr).balanceOf((address(this))));
+
+
+    function withdrow() public onlyOwner virtual{
+        require(token.balanceOf((address(this))) > 0,"no balance");
+        token.transfer(msg.sender,token.balanceOf((address(this))));
     }
 
 }
