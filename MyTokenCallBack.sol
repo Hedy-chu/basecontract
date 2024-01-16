@@ -10,11 +10,16 @@ interface ITokenBankV1 {
     function tokensReceived(address user, uint amount) external  returns (bool);
 }
 
+interface INftMarket {
+    function tokensReceived(address user, uint amount, uint tokenId) external returns (bool);
+}
+
 contract MyTokenCallBack is ERC20,Ownable{
     error callBackError();
     error codeError();
 
-    constructor(string memory name, string memory symbol) ERC20(name, symbol) Ownable(msg.sender){
+    constructor() ERC20("MyToken","MYT") Ownable(msg.sender){
+        _mint(msg.sender,100000*10**18);
     }
 
     function transfer(address to, uint256 amount) public override  returns (bool)  {
@@ -33,6 +38,23 @@ contract MyTokenCallBack is ERC20,Ownable{
         }
         return true;
        
+    }
+
+    
+    function transferForBuyNft(address to, uint256 amount,uint tokenId) public returns (bool)  {
+        uint balance = balanceOf(msg.sender);
+        require(balance >= amount, "balance not enough");
+        _update(msg.sender, to, amount);
+        // Check if the recipient is a contract
+        if (to.code.length > 0){
+            bool callBack = INftMarket(to).tokensReceived(msg.sender, amount,tokenId);
+            if (callBack){
+                return true;
+            }else{
+                revert callBackError();
+            }
+        }
+        return true;
     }
 
     function mint(address to, uint256 value) public onlyOwner{
